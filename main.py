@@ -2,22 +2,30 @@
 import pygame
 import math
 
+#import datetime to convert stored time to readable version
 import datetime
 
 # import some color-related modules
 import matplotlib.colors as mc
 import colorsys
 
+
 # initialise the pygame modules
 pygame.init()
 
+
 # define window properties
 width, height = 800, 800
+
+#define a window and a surface
 window = pygame.display.set_mode((width, height))
 surface = pygame.Surface((width*2, height*2))
+#set a window title
 pygame.display.set_caption('Planet Simulation')
 
+#set a font
 font = pygame.font.SysFont('comicsans', 16)
+
 
 # define a colors class
 class colors:
@@ -27,17 +35,18 @@ class colors:
 	red = (188, 39, 50)
 	dark_grey = (80, 78, 81)
 
-
-def adjust_lightness(input_color, amount):
-	color = (input_color[0]/255, input_color[1]/255, input_color[2]/255)
-	try:
-		c = mc.cnames[color]
-	except:
-		c = color
-	c = colorsys.rgb_to_hls(*mc.to_rgb(c))
-	float_color = colorsys.hls_to_rgb(
-		c[0], max(0, min(1, amount / 255 * c[1])), c[2])
-	return list(round(i*255) for i in float_color)
+#define a functions class
+class functions:
+	def adjust_lightness(input_color, amount):
+		color = (input_color[0]/255, input_color[1]/255, input_color[2]/255)
+		try:
+			c = mc.cnames[color]
+		except:
+			c = color
+		c = colorsys.rgb_to_hls(*mc.to_rgb(c))
+		float_color = colorsys.hls_to_rgb(
+			c[0], max(0, min(1, amount / 255 * c[1])), c[2])
+		return list(round(i*255) for i in float_color)
 
 # define a Planet class
 class Planet:
@@ -55,7 +64,6 @@ class Planet:
 		self.color = color
 		self.mass = mass
 
-
 		self.orbit = []
 		self.is_sun = False
 		self.distance_to_sun = 0
@@ -63,7 +71,7 @@ class Planet:
 		self.x_vel = 0
 		self.y_vel = 0
 
-	def draw(self, win, surf, x_movement_factor = 0, y_movement_factor = 0):
+	def draw(self, win, surf):
 		x = self.x * self.scale + width / 2
 		y = self.y * self.scale + height / 2
 
@@ -77,10 +85,8 @@ class Planet:
 
 			# draw each one of the last 255 lines inputed on the list a bit darker
 			for hue, coords in enumerate(updated_points[-255:-1]):
-				pygame.draw.line(surf, adjust_lightness(
+				pygame.draw.line(surf, functions.adjust_lightness(
 					self.color, hue), coords, updated_points[-255:][hue+1])
-				#pygame.draw.circle(surf, adjust_lightness(self.color, hue), coords, 1)
-			#pygame.draw.lines(surf, self.color, False, updated_points[-255:], 2)
 
 		pygame.draw.circle(surf, self.color, (x, y), self.radius)
 
@@ -89,7 +95,7 @@ class Planet:
 				f"{round(self.distance_to_sun/1000)} km", 1, colors.white)
 			surf.blit(distance_text, (x, y + distance_text.get_height()/2))
 	
-		win.blit(surf, (x_movement_factor, y_movement_factor))
+		win.blit(surf, (0, 0))
 
 	def attraction(self, other):
 		# get distance to "other"
@@ -110,7 +116,7 @@ class Planet:
 		force_y = math.sin(theta) * force
 		return force_x, force_y
 
-	def update_position(self, planets, x_movement_factor=0, y_movement_factor=0, insert_to_orbit=False):
+	def update_position(self, planets, insert_to_orbit=False):
 		total_fx = total_fy = 0
 		for planet in planets:
 			if self == planet:
@@ -130,17 +136,18 @@ class Planet:
 
 			time_text = font.render(
 				f"{datetime.timedelta(seconds=self.current_time)}", 1, colors.white)
-			surface.blit(time_text, (width-time_text.get_width()-15 - x_movement_factor, 5 - y_movement_factor))
+			surface.blit(time_text, (width-time_text.get_width()-15, 5))
 
-
+#function executed on startup
 def main():
 	run = True
+	#define a clock so that the game runs at a set amount of FPS
 	clock = pygame.time.Clock()
 
 	#define variables
 	movement_factors = [0, 0]
 
-	# define planets
+	#define the planets
 	sun = Planet(0, 0, 30, colors.yellow, 1.98892 * 10**30)
 	sun.is_sun = True
 
@@ -159,20 +166,27 @@ def main():
 	planets = [sun, earth, mars, mercury, venus]
 
 	while run:
-		#set some variables
+		#define some variables
 		global surface
-		screen_drag = False
 
 		# run at 60fps
 		clock.tick(60)
 		surface.fill((0, 0, 0))
 		window.blit(surface, (0, 0))
 
+		#save queued events in a variable
 		current_events = pygame.event.get()
 
+		#check if should change mouse icon back to normal
+		if not pygame.MOUSEMOTION in list(i.type for i in current_events):
+			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+		#hand queued events
 		for event in current_events:
+			#if X button is clicked, close
 			if event.type == pygame.QUIT:
 				run = False
+			#if mid mouse button was scrolled, zoom in/out
 			elif event.type == pygame.MOUSEWHEEL:
 				print(f"Scroll: {event.y}")
 
@@ -181,14 +195,25 @@ def main():
 					planet.scale = planet.scale * (1+event.y/10)
 					planet.radius = planet.radius * (1+event.y/10)
 
+			#if mouse was moved...
 			elif event.type == pygame.MOUSEMOTION:
+				#check if right button is being holded down
 				if pygame.mouse.get_pressed(num_buttons=3)[0]:
+					#if yes, do necessary actions to move the "solar system"
+
+					#define some variables
 					mouse_x, mouse_y = event.rel
+
 					print(f'Mouse X: {mouse_x}, Mouse Y: {mouse_y}')
+
+					#chang each planet's position
 					for planet in planets:
 						planet.x += planet.AU * mouse_x / 30
 						planet.y += planet.AU * mouse_y / 30
 
+						#change cursor icon
+						pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_SIZEALL)
+						#update planet orbit (only the last 255 items to save time and resources)
 						if len(planet.orbit) < 255:
 							for index, pos in enumerate(planet.orbit[-len(planet.orbit):]):
 								planet.orbit[-len(planet.orbit)+index] = [pos[0] + planet.AU * mouse_x / 30, pos[1] + planet.AU * mouse_y / 30]
@@ -196,20 +221,27 @@ def main():
 							for index, pos in enumerate(planet.orbit[-255:]):
 								planet.orbit[-255+index] = [pos[0] + planet.AU * mouse_x / 30, pos[1] + planet.AU * mouse_y / 30]
 
+				#else, change mouse icon to normal
+				else:
+					pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
+		#loop through each planet
 		for planet in planets:
-			# draw the planets
+			# update each planet's position a set amount of times BUT don't draw it
 			for i in range(planet.display_step//planet.timestep):
 				planet.update_position(planets)
 				planet.current_time += planet.timestep
 
+			#when done, update again and draw the planet
 			planet.update_position(planets, insert_to_orbit=True)
 			planet.current_time += planet.timestep
 
 			planet.draw(window, surface)
 
+		#update the display
 		pygame.display.update()
 
+	#when loop is interrupted, close the program
 	pygame.quit()
 
 
