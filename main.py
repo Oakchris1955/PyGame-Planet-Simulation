@@ -47,6 +47,11 @@ class functions:
 		float_color = colorsys.hls_to_rgb(
 			c[0], max(0, min(1, amount / 255 * c[1])), c[2])
 		return list(round(i*255) for i in float_color)
+	def is_close(num1, num2, factor):
+		if abs(num1[0]-num2[0]) <= factor and abs(num1[1]-num2[1]) <= factor:
+			return True
+		else:
+			return False
 
 # define a Planet class
 class Planet:
@@ -55,7 +60,7 @@ class Planet:
 	scale = 225 / AU  # 1AU = x pixels where x is the number next to / AU
 	current_time = 0
 	timestep = 3600*6  # 6 hours
-	display_step = 3600*24*7  # 7 days
+	display_step = 3600*6#3600*24*7  # 7 days
 
 	def __init__(self, name, x, y, radius, color, mass):
 		self.name = name
@@ -68,6 +73,7 @@ class Planet:
 		self.orbit = []
 		self.is_sun = False
 		self.distance_to_sun = 0
+		self.last_circle = None
 
 		self.x_vel = 0
 		self.y_vel = 0
@@ -89,7 +95,7 @@ class Planet:
 				pygame.draw.line(surf, functions.adjust_lightness(
 					self.color, hue), coords, updated_points[-255:][hue+1])
 
-		pygame.draw.circle(surf, self.color, (x, y), self.radius*self.scale)
+		self.last_circle = pygame.draw.circle(surf, self.color, (x, y), self.radius*self.scale)
 
 		if not self.is_sun:
 			distance_text = font.render(
@@ -220,6 +226,35 @@ def main():
 						else:
 							for index, pos in enumerate(planet.orbit[-255:]):
 								planet.orbit[-255+index] = [pos[0] + mouse_x / planet.scale, pos[1] + mouse_y / planet.scale]
+
+			elif event.type == pygame.MOUSEBUTTONDOWN:
+				#check if mouse clicked wasn't a scroll button
+				if not event.button in [1,2,3]:
+					continue
+				#check if mouse click is near to a planet in planets list:
+				for planet in planets:
+					#check if mouse was clicked within 10 pixels of a planet
+					if functions.is_close(event.pos, planet.last_circle.center, 10):
+						#if yes...
+						print(f'Mouse click collides with planet "{planet.name}"')
+						#center to that planet
+						
+						#begin by saving the current planet coords (because they will change)
+						current_coords = [planet.x, planet.y]
+						for second_planet in planets:
+							second_planet.x -= current_coords[0]
+							second_planet.y -= current_coords[1]
+						
+							#update each planet's orbit
+							if len(second_planet.orbit) < 255:
+								for index, pos in enumerate(second_planet.orbit[-len(second_planet.orbit):]):
+									second_planet.orbit[-len(second_planet.orbit)+index] = [pos[0] - current_coords[0], pos[1] - current_coords[1]]
+							else:
+								for index, pos in enumerate(second_planet.orbit[-255:]):
+									second_planet.orbit[-255+index] = [pos[0] - current_coords[0], pos[1] - current_coords[1]]
+					
+						#break the loop
+						break
 
 				#else, change mouse icon to normal
 				else:
