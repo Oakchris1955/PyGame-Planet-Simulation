@@ -88,7 +88,7 @@ class Planet:
 				pygame.draw.line(surf, functions.adjust_lightness(
 					self.color, hue), coords, updated_points[-255:][hue+1])
 
-		pygame.draw.circle(surf, self.color, (x, y), self.radius)
+		pygame.draw.circle(surf, self.color, (x, y), self.radius*self.scale)
 
 		if not self.is_sun:
 			distance_text = font.render(
@@ -161,6 +161,7 @@ def main():
 	mercury.y_vel = 47.4 * 1000
 
 	venus = Planet(0.723 * Planet.AU, 0, 14, colors.white, 4.8685 * 10**24)
+	venus = Planet('Venus', 0.723 * Planet.AU, 0, 6052 * 1000, colors.white, 4.8685 * 10**24)
 	venus.y_vel = -35.02 * 1000
 
 	planets = [sun, earth, mars, mercury, venus]
@@ -193,7 +194,6 @@ def main():
 				#scale the planets
 				for planet in planets:
 					planet.scale *= 1+event.y/10
-					planet.radius *= 1+event.y/10
 
 			#if mouse was moved...
 			elif event.type == pygame.MOUSEMOTION:
@@ -206,24 +206,25 @@ def main():
 
 					print(f'Mouse X: {mouse_x}, Mouse Y: {mouse_y}')
 
-					#chang each planet's position
+					#change each planet's position
 					for planet in planets:
-						planet.x += planet.AU * mouse_x / 30
-						planet.y += planet.AU * mouse_y / 30
+						planet.x += mouse_x / planet.scale
+						planet.y += mouse_y / planet.scale
 
 						#change cursor icon
 						pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_SIZEALL)
 						#update planet orbit (only the last 255 items to save time and resources)
 						if len(planet.orbit) < 255:
 							for index, pos in enumerate(planet.orbit[-len(planet.orbit):]):
-								planet.orbit[-len(planet.orbit)+index] = [pos[0] + planet.AU * mouse_x / 30, pos[1] + planet.AU * mouse_y / 30]
+								planet.orbit[-len(planet.orbit)+index] = [pos[0] + mouse_x / planet.scale, pos[1] + mouse_y / planet.scale]
 						else:
 							for index, pos in enumerate(planet.orbit[-255:]):
-								planet.orbit[-255+index] = [pos[0] + planet.AU * mouse_x / 30, pos[1] + planet.AU * mouse_y / 30]
+								planet.orbit[-255+index] = [pos[0] + mouse_x / planet.scale, pos[1] + mouse_y / planet.scale]
 
 				#else, change mouse icon to normal
 				else:
 					pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
 
 		#loop through each planet
 		for planet in planets:
