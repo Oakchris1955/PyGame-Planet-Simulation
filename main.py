@@ -57,7 +57,8 @@ class Planet:
 	timestep = 3600*6  # 6 hours
 	display_step = 3600*24*7  # 7 days
 
-	def __init__(self, x, y, radius, color, mass):
+	def __init__(self, name, x, y, radius, color, mass):
+		self.name = name
 		self.x = x
 		self.y = y
 		self.radius = radius
@@ -148,19 +149,18 @@ def main():
 	movement_factors = [0, 0]
 
 	#define the planets
-	sun = Planet(0, 0, 30, colors.yellow, 1.98892 * 10**30)
+	sun = Planet('Sun', 0, 0, 695508 * 1000, colors.yellow, 1.98892 * 10**30)
 	sun.is_sun = True
 
-	earth = Planet(-1 * Planet.AU,  0, 16, colors.blue, 5.9742 * 10**24)
+	earth = Planet('Earth', -1 * Planet.AU,  0, 6371 * 1000, colors.blue, 5.9742 * 10**24)
 	earth.y_vel = 29.783 * 1000
 
-	mars = Planet(-1.524 * Planet.AU, 0, 12, colors.red, 6.39 * 10**23)
+	mars = Planet('Mars', -1.524 * Planet.AU, 0, 3390 * 1000, colors.red, 6.39 * 10**23)
 	mars.y_vel = 24.077 * 1000
 
-	mercury = Planet(0.387 * Planet.AU, 0, 8, colors.dark_grey, 3.30 * 10**23)
+	mercury = Planet('Mercury', 0.387 * Planet.AU, 0, 2440 * 1000, colors.dark_grey, 3.30 * 10**23)
 	mercury.y_vel = 47.4 * 1000
 
-	venus = Planet(0.723 * Planet.AU, 0, 14, colors.white, 4.8685 * 10**24)
 	venus = Planet('Venus', 0.723 * Planet.AU, 0, 6052 * 1000, colors.white, 4.8685 * 10**24)
 	venus.y_vel = -35.02 * 1000
 
