@@ -192,8 +192,8 @@ def main():
 
 				#scale the planets
 				for planet in planets:
-					planet.scale = planet.scale * (1+event.y/10)
-					planet.radius = planet.radius * (1+event.y/10)
+					planet.scale *= 1+event.y/10
+					planet.radius *= 1+event.y/10
 
 			#if mouse was moved...
 			elif event.type == pygame.MOUSEMOTION:
