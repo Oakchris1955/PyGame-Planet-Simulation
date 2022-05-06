@@ -9,6 +9,9 @@ import datetime
 import matplotlib.colors as mc
 import colorsys
 
+#import logging to do logging-related stuff
+import logging
+
 
 # initialise the pygame modules
 pygame.init()
@@ -25,6 +28,10 @@ pygame.display.set_caption('Planet Simulation')
 
 #set a font
 font = pygame.font.SysFont('comicsans', 16)
+
+#set a basicconfig for logging
+logging.basicConfig(level=logging.DEBUG, filename=f'logs/{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.log', filemode='w',
+					format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 # define a colors class
@@ -147,6 +154,7 @@ class Planet:
 
 #function executed on startup
 def main():
+	logging.debug('Running program...\n')
 	run = True
 	#define a clock so that the game runs at a set amount of FPS
 	clock = pygame.time.Clock()
@@ -194,7 +202,7 @@ def main():
 				run = False
 			#if mid mouse button was scrolled, zoom in/out
 			elif event.type == pygame.MOUSEWHEEL:
-				print(f"Scroll: {event.y}")
+				logging.debug(f"Scroll: {event.y}")
 
 				#scale the planets
 				for planet in planets:
@@ -209,7 +217,7 @@ def main():
 					#define some variables
 					mouse_x, mouse_y = event.rel
 
-					print(f'Mouse X: {mouse_x}, Mouse Y: {mouse_y}')
+					logging.debug(f'Mouse X: {mouse_x}, Mouse Y: {mouse_y}')
 
 					#change each planet's position
 					for planet in planets:
@@ -235,7 +243,7 @@ def main():
 					#check if mouse was clicked within 10 pixels of a planet
 					if functions.is_close(event.pos, planet.last_circle.center, 10):
 						#if yes...
-						print(f'Mouse click collides with planet "{planet.name}"')
+						logging.debug(f'Mouse click collides with planet "{planet.name}"')
 						#center to that planet
 						
 						#begin by saving the current planet coords (because they will change)
@@ -277,8 +285,14 @@ def main():
 		pygame.display.update()
 
 	#when loop is interrupted, close the program
+	logging.debug('Closing program...\n')
+
 	pygame.quit()
 
 
 if __name__ == "__main__":
-	main()
+	try:
+		main()
+	#if an Exception a raisen, log it
+	except Exception as e:
+		logging.exception('An exception has occured', exc_info=True)
