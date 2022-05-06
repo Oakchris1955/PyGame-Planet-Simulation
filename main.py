@@ -152,7 +152,6 @@ def main():
 	clock = pygame.time.Clock()
 
 	#define variables
-	movement_factors = [0, 0]
 
 	#define the planets
 	sun = Planet('Sun', 0, 0, 695508 * 1000, colors.yellow, 1.98892 * 10**30)
