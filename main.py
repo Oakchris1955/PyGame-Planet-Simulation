@@ -67,7 +67,7 @@ class Planet:
 	scale = 225 / AU  # 1AU = x pixels where x is the number next to / AU
 	current_time = 0
 	timestep = 3600*6  # 6 hours
-	display_step = 3600*6#3600*24*7  # 7 days
+	display_step = 3600*24*7  # 7 days
 
 	def __init__(self, name, x, y, radius, color, mass):
 		self.name = name
@@ -160,6 +160,7 @@ def main():
 	clock = pygame.time.Clock()
 
 	#define variables
+	selected_planet = None
 
 	#define the planets
 	sun = Planet('Sun', 0, 0, 695508 * 1000, colors.yellow, 1.98892 * 10**30)
@@ -244,24 +245,15 @@ def main():
 					if functions.is_close(event.pos, planet.last_circle.center, 10):
 						#if yes...
 						logging.debug(f'Mouse click collides with planet "{planet.name}"')
-						#center to that planet
 						
-						#begin by saving the current planet coords (because they will change)
-						current_coords = [planet.x, planet.y]
-						for second_planet in planets:
-							second_planet.x -= current_coords[0]
-							second_planet.y -= current_coords[1]
-						
-							#update each planet's orbit
-							if len(second_planet.orbit) < 255:
-								for index, pos in enumerate(second_planet.orbit[-len(second_planet.orbit):]):
-									second_planet.orbit[-len(second_planet.orbit)+index] = [pos[0] - current_coords[0], pos[1] - current_coords[1]]
-							else:
-								for index, pos in enumerate(second_planet.orbit[-255:]):
-									second_planet.orbit[-255+index] = [pos[0] - current_coords[0], pos[1] - current_coords[1]]
+						#save that planet
+						selected_planet = planet.name
 					
 						#break the loop
 						break
+					else:
+						#else, change selected planet to None
+						selected_planet = None
 
 				#else, change mouse icon to normal
 				else:
@@ -275,10 +267,33 @@ def main():
 				planet.update_position(planets)
 				planet.current_time += planet.timestep
 
-			#when done, update again and draw the planet
+
+		#check if must center to a certain planet
+		if selected_planet:
+			#if yes, center to that planet
+			
+			#begin by saving the selected planet object as a variable
+			planet = {planet.name: planet for planet in planets}[selected_planet]
+
+			#then, save the current planet coords (because they will change)
+			current_coords = [planet.x, planet.y]
+			
+			for second_planet in planets:
+				second_planet.x -= current_coords[0]
+				second_planet.y -= current_coords[1]
+			
+				#update each planet's orbit
+				if len(second_planet.orbit) < 255:
+					for index, pos in enumerate(second_planet.orbit[-len(second_planet.orbit):]):
+						second_planet.orbit[-len(second_planet.orbit)+index] = [pos[0] - current_coords[0], pos[1] - current_coords[1]]
+				else:
+					for index, pos in enumerate(second_planet.orbit[-255:]):
+						second_planet.orbit[-255+index] = [pos[0] - current_coords[0], pos[1] - current_coords[1]]
+
+		#draw the planets
+		for planet in planets:
 			planet.update_position(planets, insert_to_orbit=True)
 			planet.current_time += planet.timestep
-
 			planet.draw(window, surface)
 
 		#update the display
