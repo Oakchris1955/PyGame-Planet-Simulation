@@ -263,9 +263,15 @@ def main():
 		#loop through each planet
 		for planet in planets:
 			# update each planet's position a set amount of times BUT don't draw it
-			for i in range(planet.display_step//planet.timestep):
-				planet.update_position(planets)
+			for i in range(planet.display_step//planet.timestep-1):
 				planet.current_time += planet.timestep
+				planet.update_position(planets)
+				print(i)
+
+			#update them one last time
+			planet.current_time += planet.timestep
+			planet.update_position(planets, insert_to_orbit=True)
+
 
 
 		#check if must center to a certain planet
@@ -290,10 +296,9 @@ def main():
 					for index, pos in enumerate(second_planet.orbit[-255:]):
 						second_planet.orbit[-255+index] = [pos[0] - current_coords[0], pos[1] - current_coords[1]]
 
+
 		#draw the planets
 		for planet in planets:
-			planet.update_position(planets, insert_to_orbit=True)
-			planet.current_time += planet.timestep
 			planet.draw(window, surface)
 
 		#update the display
