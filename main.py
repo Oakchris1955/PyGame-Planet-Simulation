@@ -266,7 +266,6 @@ def main():
 			for i in range(planet.display_step//planet.timestep-1):
 				planet.current_time += planet.timestep
 				planet.update_position(planets)
-				print(i)
 
 			#update them one last time
 			planet.current_time += planet.timestep
